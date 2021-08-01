@@ -23,7 +23,7 @@ pub fn schulze_election(votes: Vec<Ballot>) -> Candidate {
     todo!()
 }
 
-fn count_candidates(votes: &Vec<Ballot>) -> usize {
+fn highest_id(votes: &Vec<Ballot>) -> usize {
     let mut num_candidates = 0;
     for ballot in votes {
         for (candidate, _) in ballot {
@@ -34,6 +34,7 @@ fn count_candidates(votes: &Vec<Ballot>) -> usize {
     return num_candidates;
 }
 
+#[derive(Debug)]
 struct VoteCount {
     // Pairwise preferences.
     // self.count[x][y] is the number of voters who prefer candidate x to candidate y.
@@ -48,8 +49,8 @@ impl VoteCount {
     }
 
     fn from_ballots(ballots: &Vec<Ballot>) -> Self {
-        let num_candidates = count_candidates(ballots);
-        let mut count = VoteCount::new(num_candidates);
+        let highest_id = highest_id(ballots);
+        let mut count = VoteCount::new(highest_id + 1);
 
         for ballot in ballots {
             count.count_ballot(ballot);
@@ -58,6 +59,7 @@ impl VoteCount {
         return count;
     }
 
+    // Adds a new ballot to the total count.
     fn count_ballot(&mut self, ballot: &Ballot) {
         for i in 0..ballot.len() {
             for j in (i+1)..ballot.len() {
@@ -117,5 +119,18 @@ mod test {
     fn invalid_ballot() {
         let ballot = vec![(ALICE, 1), (ALICE, 2)];
         assert!(!valid_ballot(&ballot));
+    }
+
+    #[test]
+    fn ballot_count() {
+        let ballots = vec![
+            vec![(ALICE, 1), (BOB, 2), (CHAD, 3)],
+        ];
+        let count = VoteCount::from_ballots(&ballots);
+        assert_eq!(count.count, vec![
+            vec![0, 1, 1],
+            vec![0, 0, 1],
+            vec![0, 0, 0],
+        ]);
     }
 }
