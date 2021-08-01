@@ -69,7 +69,9 @@ impl VoteCount {
                 if rank_a < rank_b {
                     // candidate_a is preferred to candidate_b
                     self.count[candidate_a.id][candidate_b.id] += 1;
-                }
+                } else if rank_b < rank_a {
+                    self.count[candidate_b.id][candidate_a.id] += 1;
+                } // otherwise rank_a == rank_b, do not change the count
             }
         }
     }
@@ -122,15 +124,53 @@ mod test {
     }
 
     #[test]
-    fn ballot_count() {
+    fn ballot_count_forward() {
         let ballots = vec![
-            vec![(ALICE, 1), (BOB, 2), (CHAD, 3)],
+            vec![(ALICE, 1), (BOB, 2)],
         ];
         let count = VoteCount::from_ballots(&ballots);
         assert_eq!(count.count, vec![
-            vec![0, 1, 1],
-            vec![0, 0, 1],
-            vec![0, 0, 0],
+            vec![0, 1],
+            vec![0, 0],
+        ]);
+    }
+
+    #[test]
+    fn ballot_count_backward() {
+        let ballots = vec![
+            vec![(ALICE, 2), (BOB, 1)],
+        ];
+        let count = VoteCount::from_ballots(&ballots);
+        assert_eq!(count.count, vec![
+            vec![0, 0],
+            vec![1, 0],
+        ]);
+    }
+
+    #[test]
+    fn ballot_count_equal() {
+        let ballots = vec![
+            vec![(ALICE, 1), (BOB, 1)],
+        ];
+        let count = VoteCount::from_ballots(&ballots);
+        assert_eq!(count.count, vec![
+            vec![0, 0],
+            vec![0, 0],
+        ]);
+    }
+
+    #[test]
+    fn ballot_counts() {
+        let ballots = vec![
+            vec![(ALICE, 1), (BOB, 2), (CHAD, 3)],
+            vec![(ALICE, 1), (BOB, 1), (CHAD, 3)],
+            vec![(ALICE, 3), (BOB, 2), (CHAD, 1)],
+        ];
+        let count = VoteCount::from_ballots(&ballots);
+        assert_eq!(count.count, vec![
+            vec![0, 1, 2],
+            vec![1, 0, 2],
+            vec![1, 1, 0],
         ]);
     }
 }
