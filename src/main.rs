@@ -2,6 +2,7 @@ fn main() {
     println!("Hello, world!");
 }
 
+#[derive(Copy,Clone)]
 pub struct Candidate {
     id: usize,
 }
@@ -13,11 +14,12 @@ type Rank = i32;
 type Ballot = Vec<(Candidate, Rank)>;
 
 pub fn schulze_election(votes: Vec<Ballot>) -> Candidate {
+    // Check that the ballots are valid.
     for ballot in votes.iter() {
         assert!(valid_ballot(ballot));
     }
 
-    let pref = count_preferences(&votes);
+    let count = VoteCount::from_ballots(&votes);
     todo!()
 }
 
@@ -32,13 +34,43 @@ fn count_candidates(votes: &Vec<Ballot>) -> usize {
     return num_candidates;
 }
 
-// Pairwise preferences.
-// pref[x][y] is the number of voters who prefer candidate x to candidate y.
-fn count_preferences(votes: &Vec<Ballot>) -> Vec<Vec<i32>> {
-    let num_candidates = count_candidates(votes);
-    let mut pref = vec![vec![0; num_candidates]; num_candidates];
+struct VoteCount {
+    // Pairwise preferences.
+    // self.count[x][y] is the number of voters who prefer candidate x to candidate y.
+    count: Vec<Vec<i32>>,
+}
 
-    return pref;
+impl VoteCount {
+    fn new(num_candidates: usize) -> VoteCount {
+        VoteCount {
+            count: vec![vec![0; num_candidates]; num_candidates],
+        }
+    }
+
+    fn from_ballots(ballots: &Vec<Ballot>) -> Self {
+        let num_candidates = count_candidates(ballots);
+        let mut count = VoteCount::new(num_candidates);
+
+        for ballot in ballots {
+            count.count_ballot(ballot);
+        }
+
+        return count;
+    }
+
+    fn count_ballot(&mut self, ballot: &Ballot) {
+        for i in 0..ballot.len() {
+            for j in (i+1)..ballot.len() {
+                let (candidate_a, rank_a) = ballot[i];
+                let (candidate_b, rank_b) = ballot[j];
+
+                if rank_a < rank_b {
+                    // candidate_a is preferred to candidate_b
+                    self.count[candidate_a.id][candidate_b.id] += 1;
+                }
+            }
+        }
+    }
 }
 
 // Checks if the ballot is valid.
