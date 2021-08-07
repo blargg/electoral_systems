@@ -103,6 +103,36 @@ impl Into<Candidate> for usize {
     }
 }
 
+/// Returns widest_path[x][y] which is the capacity of the widest path from x to y.
+fn floyd_warshall_widest_paths(weights: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let dim = weights.len();
+    if dim == 0 {
+        return vec![];
+    }
+    assert!(dim == weights[0].len(), "only valid for square matrices");
+    // Initialize widest path to all 0 and 1 step widest paths.
+    let mut current_widest = weights.clone();
+    for i in 0..dim {
+        // self loop assumed to have maximum width.
+        current_widest[i][i] = i32::MAX;
+    }
+
+    // For each k, a new node to introduce into the possible paths, check if k can be used in a new
+    // wider path between any two nodes.
+    for k in 0..dim {
+        for i in 0..dim {
+            for j in 0..dim {
+                let width_using_k = std::cmp::min(current_widest[i][k], current_widest[k][j]);
+                if current_widest[i][j] < width_using_k {
+                    current_widest[i][j] = width_using_k;
+                }
+            }
+        }
+    }
+
+    return current_widest;
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -171,6 +201,21 @@ mod test {
             vec![0, 1, 2],
             vec![1, 0, 2],
             vec![1, 1, 0],
+        ]);
+    }
+
+    #[test]
+    fn simple_floyd_warshal() {
+        let edge_weights = vec![
+            vec![0, 5, 1],
+            vec![1, 0, 5],
+            vec![0, 0, 0],
+        ];
+        let widest_paths = floyd_warshall_widest_paths(&edge_weights);
+        assert_eq!(widest_paths, vec![
+            vec![i32::MAX, 5, 5],
+            vec![1, i32::MAX, 5],
+            vec![0, 0, i32::MAX],
         ]);
     }
 }
