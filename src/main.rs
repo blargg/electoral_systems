@@ -2,7 +2,7 @@ fn main() {
     println!("Hello, world!");
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy,Clone,PartialEq,Eq,Debug)]
 pub struct Candidate {
     id: usize,
 }
@@ -20,7 +20,29 @@ pub fn schulze_election(votes: Vec<Ballot>) -> Candidate {
     }
 
     let count = VoteCount::from_ballots(&votes);
-    todo!()
+    let widest_paths = floyd_warshall_widest_paths(&count.count);
+
+    // TODO, there can be more than one candidate that satisfies this. Should return them all
+    for candidate in count.candidates() {
+        if preferred_to_all_others(&widest_paths, candidate) {
+            return candidate;
+        }
+    }
+    unreachable!("At least one candidate must be preferred to all others using widest paths as the preference.")
+}
+
+// TODO make or expand a struct for pairwise preferences
+fn preferred_to_all_others(preferences: &Vec<Vec<i32>>, candidate: Candidate) -> bool {
+    for other in 0..preferences.len() {
+        if candidate.id == other { continue; }
+        // This candidate is strictly less preferred that some other candidate, return false.
+        if preferences[candidate.id][other] < preferences[other][candidate.id] {
+            return false;
+        }
+    }
+
+    // At this point, candidate must be equal to or greater than all other direct comparisons.
+    return true;
 }
 
 fn highest_id(votes: &Vec<Ballot>) -> usize {
@@ -46,6 +68,14 @@ impl VoteCount {
         VoteCount {
             count: vec![vec![0; num_candidates]; num_candidates],
         }
+    }
+
+    fn num_candidates(&self) -> usize {
+        self.count.len()
+    }
+
+    fn candidates(&self) -> impl Iterator<Item=Candidate> {
+        (0..self.num_candidates()).map(|candidate_id| candidate_id.into())
     }
 
     fn from_ballots(ballots: &Vec<Ballot>) -> Self {
@@ -140,6 +170,24 @@ mod test {
     const ALICE: Candidate = Candidate { id: 0 };
     const BOB: Candidate = Candidate { id: 1 };
     const CHAD: Candidate = Candidate { id: 2 };
+    const DAVE: Candidate = Candidate { id: 3 };
+    const ELSA: Candidate = Candidate { id: 4 };
+
+    /// Example ballots from https://en.wikipedia.org/wiki/Schulze_method
+    fn wiki_ballots() -> Vec<Ballot> {
+        let ballots = vec![
+            vec![ vec![(ALICE, 1), (CHAD, 2), (BOB, 3), (ELSA, 4), (DAVE, 5)]; 5],
+            vec![ vec![(ALICE, 1), (DAVE, 2), (ELSA, 3), (CHAD, 4), (BOB, 5)]; 5],
+            vec![ vec![(BOB, 1), (ELSA, 2), (DAVE, 3), (ALICE, 4), (CHAD, 5)]; 8],
+            vec![ vec![(CHAD, 1), (ALICE, 2), (BOB, 3), (ELSA, 4), (DAVE, 5)]; 3],
+            vec![ vec![(CHAD, 1), (ALICE, 2), (ELSA, 3), (BOB, 4), (DAVE, 5)]; 7],
+            vec![ vec![(CHAD, 1), (BOB, 2), (ALICE, 3), (DAVE, 4), (ELSA, 5)]; 2],
+            vec![ vec![(DAVE, 1), (CHAD, 2), (ELSA, 3), (BOB, 4), (ALICE, 5)]; 7],
+            vec![ vec![(ELSA, 1), (BOB, 2), (ALICE, 3), (DAVE, 4), (CHAD, 5)]; 8],
+        ];
+
+        return ballots.concat();
+    }
 
     #[test]
     fn valid_ballot_test() {
@@ -202,6 +250,40 @@ mod test {
             vec![1, 0, 2],
             vec![1, 1, 0],
         ]);
+    }
+
+    #[test]
+    fn wiki_ballot_count() {
+        let ballots = wiki_ballots();
+        let count = VoteCount::from_ballots(&ballots);
+        assert_eq!(count.count, vec![
+            vec![0, 20, 26, 30, 22],
+            vec![25, 0, 16, 33, 18],
+            vec![19, 29, 0, 17, 24],
+            vec![15, 12, 28, 0, 14],
+            vec![23, 27, 21, 31, 0],
+        ]);
+    }
+
+    #[test]
+    fn wiki_floyd_warshall() {
+        let ballots = wiki_ballots();
+        let count = VoteCount::from_ballots(&ballots);
+        let widest_paths = floyd_warshall_widest_paths(&count.count);
+        assert_eq!(widest_paths, vec![
+            vec![i32::MAX, 28, 28, 30, 24],
+            vec![25, i32::MAX, 28, 33, 24],
+            vec![25, 29, i32::MAX, 29, 24],
+            vec![25, 28, 28, i32::MAX, 24],
+            vec![25, 28, 28, 31, i32::MAX],
+        ]);
+    }
+
+    #[test]
+    fn wiki_schults_method() {
+        let ballots = wiki_ballots();
+        let winner = schulze_election(ballots);
+        assert_eq!(winner, ELSA);
     }
 
     #[test]
