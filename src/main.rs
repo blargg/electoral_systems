@@ -205,17 +205,64 @@ mod test {
     }
 
     #[test]
-    fn simple_floyd_warshal() {
+    fn simple_floyd_warshall() {
         let edge_weights = vec![
-            vec![0, 5, 1],
-            vec![1, 0, 5],
+            vec![0, 5, 0],
+            vec![0, 0, 5],
             vec![0, 0, 0],
         ];
         let widest_paths = floyd_warshall_widest_paths(&edge_weights);
         assert_eq!(widest_paths, vec![
             vec![i32::MAX, 5, 5],
-            vec![1, i32::MAX, 5],
+            vec![0, i32::MAX, 5],
             vec![0, 0, i32::MAX],
+        ]);
+    }
+
+    #[test]
+    fn simple_floyd_warshall_reversed() {
+        let edge_weights = vec![
+            vec![0, 0, 0],
+            vec![5, 0, 0],
+            vec![1, 5, 0],
+        ];
+        let widest_paths = floyd_warshall_widest_paths(&edge_weights);
+        assert_eq!(widest_paths, vec![
+            vec![i32::MAX, 0, 0],
+            vec![5, i32::MAX, 0],
+            vec![5, 5, i32::MAX],
+        ]);
+    }
+
+    #[test]
+    fn floyd_warshall_chain() {
+        let edge_weights = vec![
+            vec![0, 5, 1],
+            vec![1, 0, 5],
+            vec![3, 1, 0],
+        ];
+        let widest_paths = floyd_warshall_widest_paths(&edge_weights);
+        assert_eq!(widest_paths, vec![
+            vec![i32::MAX, 5, 5],
+            vec![3, i32::MAX, 5],
+            vec![3, 3, i32::MAX],
+        ]);
+    }
+
+    #[test]
+    fn complex_floyd_warshall() {
+        let edge_weights = vec![
+            vec![0, 5, 1, 0],
+            vec![1, 0, 5, 0],
+            vec![0, 1, 0, 5],
+            vec![3, 0, 1, 0],
+        ];
+        let widest_paths = floyd_warshall_widest_paths(&edge_weights);
+        assert_eq!(widest_paths, vec![
+            vec![i32::MAX, 5, 5, 5],
+            vec![3, i32::MAX, 5, 5],
+            vec![3, 3, i32::MAX, 5],
+            vec![3, 3, 3, i32::MAX],
         ]);
     }
 }
