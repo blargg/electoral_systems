@@ -1,5 +1,5 @@
 [package]
-name = "schulze_method"
+name = "electoral_systems"
 version = "0.1.0"
 edition = "2018"
 

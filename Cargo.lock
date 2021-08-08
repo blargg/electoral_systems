@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "schulze_method"
+name = "electoral_systems"
 version = "0.1.0"
