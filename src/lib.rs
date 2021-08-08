@@ -15,7 +15,7 @@ pub fn schulze_election(votes: Vec<Ballot>) -> Candidate {
         assert!(valid_ballot(ballot));
     }
 
-    let count = VoteCount::from_ballots(&votes);
+    let count = PairwisePreferences::from_ballots(&votes);
     let widest_paths = floyd_warshall_widest_paths(&count.count);
 
     // TODO, there can be more than one candidate that satisfies this. Should return them all
@@ -52,16 +52,20 @@ fn highest_id(votes: &Vec<Ballot>) -> usize {
     return num_candidates;
 }
 
+/// Pairwise Preferences in an election. For some number of candidates, stores the preference of
+/// one candidate to another.
+///
+/// This can be used for counting the number of ballots that
+/// prefer candidate x to candidate y.
 #[derive(Debug)]
-struct VoteCount {
-    // Pairwise preferences.
-    // self.count[x][y] is the number of voters who prefer candidate x to candidate y.
+struct PairwisePreferences {
+    // count[x][y] is the number of voters who prefer candidate x to candidate y.
     count: Vec<Vec<i32>>,
 }
 
-impl VoteCount {
-    fn new(num_candidates: usize) -> VoteCount {
-        VoteCount {
+impl PairwisePreferences {
+    fn new(num_candidates: usize) -> PairwisePreferences {
+        PairwisePreferences {
             count: vec![vec![0; num_candidates]; num_candidates],
         }
     }
@@ -76,7 +80,7 @@ impl VoteCount {
 
     fn from_ballots(ballots: &Vec<Ballot>) -> Self {
         let highest_id = highest_id(ballots);
-        let mut count = VoteCount::new(highest_id + 1);
+        let mut count = PairwisePreferences::new(highest_id + 1);
 
         for ballot in ballots {
             count.count_ballot(ballot);
@@ -202,7 +206,7 @@ mod test {
         let ballots = vec![
             vec![(ALICE, 1), (BOB, 2)],
         ];
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         assert_eq!(count.count, vec![
             vec![0, 1],
             vec![0, 0],
@@ -214,7 +218,7 @@ mod test {
         let ballots = vec![
             vec![(ALICE, 2), (BOB, 1)],
         ];
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         assert_eq!(count.count, vec![
             vec![0, 0],
             vec![1, 0],
@@ -226,7 +230,7 @@ mod test {
         let ballots = vec![
             vec![(ALICE, 1), (BOB, 1)],
         ];
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         assert_eq!(count.count, vec![
             vec![0, 0],
             vec![0, 0],
@@ -240,7 +244,7 @@ mod test {
             vec![(ALICE, 1), (BOB, 1), (CHAD, 3)],
             vec![(ALICE, 3), (BOB, 2), (CHAD, 1)],
         ];
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         assert_eq!(count.count, vec![
             vec![0, 1, 2],
             vec![1, 0, 2],
@@ -251,7 +255,7 @@ mod test {
     #[test]
     fn wiki_ballot_count() {
         let ballots = wiki_ballots();
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         assert_eq!(count.count, vec![
             vec![0, 20, 26, 30, 22],
             vec![25, 0, 16, 33, 18],
@@ -264,7 +268,7 @@ mod test {
     #[test]
     fn wiki_floyd_warshall() {
         let ballots = wiki_ballots();
-        let count = VoteCount::from_ballots(&ballots);
+        let count = PairwisePreferences::from_ballots(&ballots);
         let widest_paths = floyd_warshall_widest_paths(&count.count);
         assert_eq!(widest_paths, vec![
             vec![i32::MAX, 28, 28, 30, 24],
