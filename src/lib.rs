@@ -1,6 +1,7 @@
 pub mod schulze_method;
+pub mod instant_runoff_voting;
 
-#[derive(Copy,Clone,PartialEq,Eq,Debug)]
+#[derive(Copy,Clone,PartialEq,Eq,Debug,Hash)]
 pub struct Candidate {
     id: usize,
 }
