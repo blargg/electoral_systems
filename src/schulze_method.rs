@@ -1,4 +1,4 @@
-use crate::{Candidate, Ballot, PairwisePreferences};
+use crate::{Candidate, Ballot, unique_candidates, PairwisePreferences};
 
 /// Schulze method election. Ballots give a list of candidates and a number ranking.
 /// Lower numbers are more preferred candidates. Each candidate can only be listed
@@ -25,22 +25,7 @@ pub fn schulze_method(votes: Vec<Ballot>) -> Candidate {
 
 // Checks if the ballot is valid.
 fn valid_ballot(ballot: &Ballot) -> bool {
-    let mut candates: Vec<usize> = ballot.iter().map(|(candidate, _)| candidate.id).collect();
-
-    if candates.len() < 1 {
-        // empty ballot is valid
-        return true;
-    }
-
-    // invalid if there are duplicates
-    // sort the list, duplicates will be sequential
-    candates.sort();
-    for window in candates.windows(2) {
-        if window[0] == window[1] {
-            return false;
-        }
-    }
-    return true;
+    unique_candidates(ballot)
 }
 
 /// Returns widest_path[x][y] which is the capacity of the widest path from x to y.

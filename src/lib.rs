@@ -11,6 +11,26 @@ type Rank = i32;
 // Should allow for Candidates with no rank (eg. give them the lowest rank to tie)
 type Ballot = Vec<(Candidate, Rank)>;
 
+// Checks if all the Candidates on the ballot are unique.
+fn unique_candidates(ballot: &Ballot) -> bool {
+    let mut candates: Vec<usize> = ballot.iter().map(|(candidate, _)| candidate.id).collect();
+
+    if candates.len() < 1 {
+        // empty ballot is valid
+        return true;
+    }
+
+    // invalid if there are duplicates
+    // sort the list, duplicates will be sequential
+    candates.sort();
+    for window in candates.windows(2) {
+        if window[0] == window[1] {
+            return false;
+        }
+    }
+    return true;
+}
+
 fn highest_id(votes: &Vec<Ballot>) -> usize {
     let mut num_candidates = 0;
     for ballot in votes {
