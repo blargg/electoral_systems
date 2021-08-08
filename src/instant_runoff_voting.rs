@@ -7,6 +7,7 @@ use std::collections::HashMap;
 /// Requires that each ballot has unique candidates (no repeats).
 pub fn instant_runoff_vote(mut ballots: Vec<Ballot>) -> Candidate {
     for ballot in ballots.iter() {
+        // TODO, there may be stricter requirements here.
         assert!(unique_candidates(ballot));
     }
 
@@ -34,7 +35,7 @@ fn first_choice_tally(ballots: &Vec<Ballot>) -> HashMap<Candidate, usize> {
 
 fn first_choice_candidate(ballot: &Ballot) -> Candidate {
     ballot.iter()
-        .max_by_key(|(_, rank)| rank)
+        .min_by_key(|(_, rank)| rank)
         .unwrap() // should always be called on ballots with candidates still left.
         .0
 }
@@ -51,5 +52,30 @@ fn remove_candidate(ballots: &mut Vec<Ballot>, candidate: Candidate) {
                 i += 1;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const ALICE: Candidate = Candidate { id: 0 };
+    const BOB: Candidate = Candidate { id: 1 };
+    const CHAD: Candidate = Candidate { id: 2 };
+
+    #[test]
+    fn simple_instant_runoff_vote() {
+        let ballots = vec![
+            vec![(ALICE, 1), (BOB, 2), (CHAD, 3)],
+            vec![(ALICE, 1), (BOB, 2), (CHAD, 3)],
+
+            vec![(CHAD, 1), (BOB, 2), (ALICE, 3)],
+
+            vec![(BOB, 1), (CHAD, 2), (ALICE, 3)],
+            vec![(BOB, 1), (CHAD, 2), (ALICE, 3)],
+        ];
+
+        let winner = instant_runoff_vote(ballots);
+        assert_eq!(winner, BOB);
     }
 }
