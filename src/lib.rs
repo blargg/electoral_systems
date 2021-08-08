@@ -1,7 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
-
 #[derive(Copy,Clone,PartialEq,Eq,Debug)]
 pub struct Candidate {
     id: usize,
