@@ -9,7 +9,12 @@ type Rank = i32;
 // Should allow for Candidates with no rank (eg. give them the lowest rank to tie)
 type Ballot = Vec<(Candidate, Rank)>;
 
-pub fn schulze_election(votes: Vec<Ballot>) -> Candidate {
+/// Schulze method election. Ballots give a list of candidates and a number ranking.
+/// Lower numbers are more preferred candidates. Each candidate can only be listed
+/// once on a ballot. Multiple candidates may have the same ranking.
+///
+/// See [reference](https://en.wikipedia.org/wiki/Schulze_method) for more information.
+pub fn schulze_method(votes: Vec<Ballot>) -> Candidate {
     // Check that the ballots are valid.
     for ballot in votes.iter() {
         assert!(valid_ballot(ballot));
@@ -282,7 +287,7 @@ mod test {
     #[test]
     fn wiki_schults_method() {
         let ballots = wiki_ballots();
-        let winner = schulze_election(ballots);
+        let winner = schulze_method(ballots);
         assert_eq!(winner, ELSA);
     }
 
