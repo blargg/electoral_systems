@@ -75,6 +75,51 @@ fn preferred_to_all_others(preferences: &Vec<Vec<i32>>, candidate: Candidate) ->
 #[cfg(test)]
 mod test {
     use super::*;
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        /// Forall edge_weights (square matrix of edge capacities), and
+        /// Forall path that starts at x and ends at y (a path through some subset of nodes in that graph)
+        /// The capacity of that path must be less than or equal to the widest path that
+        /// floyd_warshall_widest_paths finds from x to y.
+        fn prop_floyd_warshall_widest_path_finds_widest((edge_weights, path) in weights_and_path()) {
+            let widest = floyd_warshall_widest_paths(&edge_weights);
+
+            let mut path_width = i32::MAX;
+            for window in path.windows(2) {
+                let current_width = edge_weights[window[0]][window[1]];
+                path_width = std::cmp::min(path_width, current_width);
+            }
+
+            let first = path[0];
+            let last = path[path.len() - 1];
+            // TODO can probably just check all the paths at once
+            assert!(path_width <= widest[first][last]);
+        }
+    }
+
+    fn square_vec(length: impl Strategy<Value = usize>) -> impl Strategy<Value = Vec<Vec<i32>>> {
+        use proptest::collection::vec;
+        length.prop_flat_map(|length| vec(vec(0..100, length), length))
+    }
+
+    fn shuffled_subsequence(values: std::ops::Range<usize>, size: usize) -> impl Strategy<Value = Vec<usize>> {
+        let values = values.collect::<Vec<_>>();
+        use proptest::sample::subsequence;
+        subsequence(values, size).prop_shuffle()
+    }
+
+    fn weights_and_path() -> impl Strategy<Value=(Vec<Vec<i32>>, Vec<usize>)>{
+        // So far, this is only used in props that make sense with 2 or more length
+        let length = 2..10usize;
+        length.prop_flat_map(|num_vertecies| {
+            square_vec(Just(num_vertecies)).prop_flat_map(move |weights| {
+                // TODO should pick a random path length
+                shuffled_subsequence(0..num_vertecies, num_vertecies).prop_map(move |path| (weights.clone(), path))
+            })
+        })
+    }
 
     const ALICE: Candidate = Candidate { id: 0 };
     const BOB: Candidate = Candidate { id: 1 };
