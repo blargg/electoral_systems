@@ -151,17 +151,10 @@ mod test {
     }
 
     #[test]
-    fn valid_ballot_test() {
-        // TODO test with the election method
-        let ballot = vec![(ALICE, 1), (BOB, 2), (CHAD, 3)];
-        assert!(valid_ballot(&ballot));
-    }
-
-    #[test]
+    #[should_panic]
     fn invalid_ballot() {
-        // TODO change to check if the election fails
         let ballot = vec![(ALICE, 1), (ALICE, 2)];
-        assert!(!valid_ballot(&ballot));
+        schulze_method(vec![ballot]);
     }
 
     #[test]
