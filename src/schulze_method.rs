@@ -114,9 +114,10 @@ mod test {
         // So far, this is only used in props that make sense with 2 or more length
         let length = 2..10usize;
         length.prop_flat_map(|num_vertecies| {
-            square_vec(Just(num_vertecies)).prop_flat_map(move |weights| {
-                // TODO should pick a random path length
-                shuffled_subsequence(0..num_vertecies, num_vertecies).prop_map(move |path| (weights.clone(), path))
+            (1..num_vertecies).prop_flat_map(move |path_length| {
+                square_vec(Just(num_vertecies)).prop_flat_map(move |weights| {
+                    shuffled_subsequence(0..num_vertecies, path_length).prop_map(move |path| ((weights.clone(), path)))
+                })
             })
         })
     }
