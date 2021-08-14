@@ -17,7 +17,7 @@ pub fn schulze_method(votes: Vec<Ballot>) -> Vec<Candidate> {
     }
 
     let count = PairwisePreferences::from_ballots(&votes);
-    let widest_paths = floyd_warshall_widest_paths(&count.count);
+    let widest_paths = floyd_warshall_widest_paths(&count.counts);
 
     let mut candidates_to_sort = count
         .candidates()
@@ -171,7 +171,7 @@ mod test {
     fn wiki_floyd_warshall() {
         let ballots = wiki_ballots();
         let count = PairwisePreferences::from_ballots(&ballots);
-        let widest_paths = floyd_warshall_widest_paths(&count.count);
+        let widest_paths = floyd_warshall_widest_paths(&count.counts);
         assert_eq!(widest_paths, vec![
             vec![i32::MAX, 28, 28, 30, 24],
             vec![25, i32::MAX, 28, 33, 24],
