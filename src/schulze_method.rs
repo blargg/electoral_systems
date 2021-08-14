@@ -4,8 +4,13 @@ use crate::{Candidate, Ballot, unique_candidates, PairwisePreferences};
 /// Lower numbers are more preferred candidates. Each candidate can only be listed
 /// once on a ballot. Multiple candidates may have the same ranking.
 ///
+/// The candidates are returned in order of preference, with the first element being the most
+/// preferred candidate, and the last being the least preferred.
+///
+/// Ties are broken arbitrarily.
+///
 /// See [reference](https://en.wikipedia.org/wiki/Schulze_method) for more information.
-pub fn schulze_method(votes: Vec<Ballot>) -> Candidate {
+pub fn schulze_method(votes: Vec<Ballot>) -> Vec<Candidate> {
     // Check that the ballots are valid.
     for ballot in votes.iter() {
         assert!(valid_ballot(ballot));
@@ -14,13 +19,17 @@ pub fn schulze_method(votes: Vec<Ballot>) -> Candidate {
     let count = PairwisePreferences::from_ballots(&votes);
     let widest_paths = floyd_warshall_widest_paths(&count.count);
 
-    // TODO, there can be more than one candidate that satisfies this. Should return them all
-    for candidate in count.candidates() {
-        if preferred_to_all_others(&widest_paths, candidate) {
-            return candidate;
-        }
-    }
-    unreachable!("At least one candidate must be preferred to all others using widest paths as the preference.")
+    let mut candidates_to_sort = count
+        .candidates()
+        .collect::<Vec<_>>();
+    candidates_to_sort.sort_by_key(|candidate| preferred_above_count(&widest_paths, *candidate));
+    candidates_to_sort.reverse();
+    return candidates_to_sort;
+}
+
+/// schulze_method, but only returns the first candidate.
+pub fn schulze_method_single(votes: Vec<Ballot>) -> Candidate {
+    *schulze_method(votes).get(0).expect("Expecting there to be at least one candidate.")
 }
 
 // Checks if the ballot is valid.
@@ -58,18 +67,18 @@ fn floyd_warshall_widest_paths(weights: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
     return current_widest;
 }
 
-// TODO make or expand a struct for pairwise preferences
-fn preferred_to_all_others(preferences: &Vec<Vec<i32>>, candidate: Candidate) -> bool {
+/// For the given candidate, count the number of challengers that the candidate beats.
+fn preferred_above_count(preferences: &Vec<Vec<i32>>, candidate: Candidate) -> usize {
+    let mut count = 0;
     for other in 0..preferences.len() {
         if candidate.id == other { continue; }
-        // This candidate is strictly less preferred that some other candidate, return false.
-        if preferences[candidate.id][other] < preferences[other][candidate.id] {
-            return false;
+        if preferences[candidate.id][other] >= preferences[other][candidate.id] {
+            count += 1;
         }
     }
 
     // At this point, candidate must be equal to or greater than all other direct comparisons.
-    return true;
+    return count;
 }
 
 #[cfg(test)]
@@ -147,7 +156,7 @@ mod test {
     #[test]
     fn wiki_schults_method() {
         let ballots = wiki_ballots();
-        let winner = schulze_method(ballots);
+        let winner = schulze_method_single(ballots);
         assert_eq!(winner, ELSA);
     }
 
