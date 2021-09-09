@@ -1,4 +1,4 @@
-use crate::{Candidate, Ballot, unique_candidates, PairwisePreferences};
+use crate::{Candidate, Ballot, BallotSlice, unique_candidates, PairwisePreferences};
 
 /// Schulze method election. Ballots give a list of candidates and a number ranking.
 /// Lower numbers are more preferred candidates. Each candidate can only be listed
@@ -33,19 +33,19 @@ pub fn schulze_method_single(votes: Vec<Ballot>) -> Candidate {
 }
 
 // Checks if the ballot is valid.
-fn valid_ballot(ballot: &Ballot) -> bool {
+fn valid_ballot(ballot: &BallotSlice) -> bool {
     unique_candidates(ballot)
 }
 
 /// Returns widest_path[x][y] which is the capacity of the widest path from x to y.
-fn floyd_warshall_widest_paths(weights: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+fn floyd_warshall_widest_paths(weights: &[Vec<i32>]) -> Vec<Vec<i32>> {
     let dim = weights.len();
     if dim == 0 {
         return vec![];
     }
     assert!(dim == weights[0].len(), "only valid for square matrices");
     // Initialize widest path to all 0 and 1 step widest paths.
-    let mut current_widest = weights.clone();
+    let mut current_widest = weights.to_owned();
     for i in 0..dim {
         // self loop assumed to have maximum width.
         current_widest[i][i] = i32::MAX;
