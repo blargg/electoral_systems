@@ -1,7 +1,7 @@
-pub mod schulze_method;
 pub mod instant_runoff_voting;
+pub mod schulze_method;
 
-#[derive(Copy,Clone,PartialEq,Eq,Debug,Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Candidate {
     id: usize,
 }
@@ -67,7 +67,7 @@ impl PairwisePreferences {
         self.counts.len()
     }
 
-    fn candidates(&self) -> impl Iterator<Item=Candidate> {
+    fn candidates(&self) -> impl Iterator<Item = Candidate> {
         (0..self.num_candidates()).map(|candidate_id| candidate_id.into())
     }
 
@@ -85,7 +85,7 @@ impl PairwisePreferences {
     // Adds a new ballot to the total count.
     fn count_ballot(&mut self, ballot: &BallotSlice) {
         for i in 0..ballot.len() {
-            for j in (i+1)..ballot.len() {
+            for j in (i + 1)..ballot.len() {
                 let (candidate_a, rank_a) = ballot[i];
                 let (candidate_b, rank_b) = ballot[j];
 
@@ -96,7 +96,7 @@ impl PairwisePreferences {
                     // candidate_b is preferred to candidate_a
                     Ordering::Greater => self.counts[candidate_b.id][candidate_a.id] += 1,
                     // otherwise rank_a == rank_b, do not change the count
-                    Ordering::Equal => { }
+                    Ordering::Equal => {}
                 }
             }
         }
@@ -105,9 +105,7 @@ impl PairwisePreferences {
 
 impl From<usize> for Candidate {
     fn from(id: usize) -> Self {
-        Candidate {
-            id,
-        }
+        Candidate { id }
     }
 }
 
@@ -121,38 +119,23 @@ mod test {
 
     #[test]
     fn ballot_count_forward() {
-        let ballots = vec![
-            vec![(ALICE, 1), (BOB, 2)],
-        ];
+        let ballots = vec![vec![(ALICE, 1), (BOB, 2)]];
         let count = PairwisePreferences::from_ballots(&ballots);
-        assert_eq!(count.counts, vec![
-            vec![0, 1],
-            vec![0, 0],
-        ]);
+        assert_eq!(count.counts, vec![vec![0, 1], vec![0, 0],]);
     }
 
     #[test]
     fn ballot_count_backward() {
-        let ballots = vec![
-            vec![(ALICE, 2), (BOB, 1)],
-        ];
+        let ballots = vec![vec![(ALICE, 2), (BOB, 1)]];
         let count = PairwisePreferences::from_ballots(&ballots);
-        assert_eq!(count.counts, vec![
-            vec![0, 0],
-            vec![1, 0],
-        ]);
+        assert_eq!(count.counts, vec![vec![0, 0], vec![1, 0],]);
     }
 
     #[test]
     fn ballot_count_equal() {
-        let ballots = vec![
-            vec![(ALICE, 1), (BOB, 1)],
-        ];
+        let ballots = vec![vec![(ALICE, 1), (BOB, 1)]];
         let count = PairwisePreferences::from_ballots(&ballots);
-        assert_eq!(count.counts, vec![
-            vec![0, 0],
-            vec![0, 0],
-        ]);
+        assert_eq!(count.counts, vec![vec![0, 0], vec![0, 0],]);
     }
 
     #[test]
@@ -163,10 +146,9 @@ mod test {
             vec![(ALICE, 3), (BOB, 2), (CHAD, 1)],
         ];
         let count = PairwisePreferences::from_ballots(&ballots);
-        assert_eq!(count.counts, vec![
-            vec![0, 1, 2],
-            vec![1, 0, 2],
-            vec![1, 1, 0],
-        ]);
+        assert_eq!(
+            count.counts,
+            vec![vec![0, 1, 2], vec![1, 0, 2], vec![1, 1, 0],]
+        );
     }
 }
