@@ -89,12 +89,15 @@ impl PairwisePreferences {
                 let (candidate_a, rank_a) = ballot[i];
                 let (candidate_b, rank_b) = ballot[j];
 
-                if rank_a < rank_b {
+                use std::cmp::Ordering;
+                match rank_a.cmp(&rank_b) {
                     // candidate_a is preferred to candidate_b
-                    self.counts[candidate_a.id][candidate_b.id] += 1;
-                } else if rank_b < rank_a {
-                    self.counts[candidate_b.id][candidate_a.id] += 1;
-                } // otherwise rank_a == rank_b, do not change the count
+                    Ordering::Less => self.counts[candidate_a.id][candidate_b.id] += 1,
+                    // candidate_b is preferred to candidate_a
+                    Ordering::Greater => self.counts[candidate_b.id][candidate_a.id] += 1,
+                    // otherwise rank_a == rank_b, do not change the count
+                    Ordering::Equal => { }
+                }
             }
         }
     }
