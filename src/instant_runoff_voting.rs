@@ -1,4 +1,4 @@
-use crate::{Ballot, Candidate, unique_candidates};
+use crate::{Ballot, BallotSlice, Candidate, unique_candidates};
 use std::collections::HashMap;
 
 /// Instant Runoff Vote. If there are more than one candidates, remove the one with the fewest first
@@ -24,16 +24,16 @@ pub fn instant_runoff_vote(mut ballots: Vec<Ballot>) -> Candidate {
     }
 }
 
-fn first_choice_tally(ballots: &Vec<Ballot>) -> HashMap<Candidate, usize> {
+fn first_choice_tally(ballots: &[Ballot]) -> HashMap<Candidate, usize> {
     let mut counts = HashMap::new();
     for ballot in ballots {
         *counts.entry(first_choice_candidate(ballot)).or_insert(0) += 1;
     }
 
-    return counts;
+    counts
 }
 
-fn first_choice_candidate(ballot: &Ballot) -> Candidate {
+fn first_choice_candidate(ballot: &BallotSlice) -> Candidate {
     ballot.iter()
         .min_by_key(|(_, rank)| rank)
         .unwrap() // should always be called on ballots with candidates still left.
