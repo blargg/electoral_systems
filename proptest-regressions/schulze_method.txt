@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc a8fc88a7454f8e2bd1c6ed6ea42ac3a75c248a4cf1033fd5f50af262f2648b41 # shrinks to (edge_weights, path) = (PairwisePreferences { num_candidates: 2, counts: [0, 0, 0, 0] }, [Candidate { id: 1 }])
