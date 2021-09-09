@@ -24,7 +24,7 @@ pub fn schulze_method(votes: Vec<Ballot>) -> Vec<Candidate> {
         .collect::<Vec<_>>();
     candidates_to_sort.sort_by_key(|candidate| preferred_above_count(&widest_paths, *candidate));
     candidates_to_sort.reverse();
-    return candidates_to_sort;
+    candidates_to_sort
 }
 
 /// schulze_method, but only returns the first candidate.
@@ -64,7 +64,7 @@ fn floyd_warshall_widest_paths(weights: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
         }
     }
 
-    return current_widest;
+    current_widest
 }
 
 /// For the given candidate, count the number of challengers that the candidate beats.
@@ -78,7 +78,7 @@ fn preferred_above_count(preferences: &Vec<Vec<i32>>, candidate: Candidate) -> u
     }
 
     // At this point, candidate must be equal to or greater than all other direct comparisons.
-    return count;
+    count
 }
 
 #[cfg(test)]
@@ -150,7 +150,7 @@ mod test {
             vec![ vec![(ELSA, 1), (BOB, 2), (ALICE, 3), (DAVE, 4), (CHAD, 5)]; 8],
         ];
 
-        return ballots.concat();
+        ballots.concat()
     }
 
     #[test]
