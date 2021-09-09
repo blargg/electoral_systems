@@ -69,7 +69,7 @@ fn floyd_warshall_widest_paths(weights: &[Vec<i32>]) -> Vec<Vec<i32>> {
 }
 
 /// For the given candidate, count the number of challengers that the candidate beats.
-fn preferred_above_count(preferences: &Vec<Vec<i32>>, candidate: Candidate) -> usize {
+fn preferred_above_count(preferences: &[Vec<i32>], candidate: Candidate) -> usize {
     let mut count = 0;
     for other in 0..preferences.len() {
         if candidate.id == other { continue; }
