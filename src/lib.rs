@@ -11,28 +11,30 @@ type Rank = i32;
 // Multiple candidates with the same rank is allowed
 // Should allow for Candidates with no rank (eg. give them the lowest rank to tie)
 type Ballot = Vec<(Candidate, Rank)>;
+type BallotSlice = [(Candidate, Rank)];
 
 // Checks if all the Candidates on the ballot are unique.
-fn unique_candidates(ballot: &Ballot) -> bool {
+fn unique_candidates(ballot: &BallotSlice) -> bool {
     let mut candates: Vec<usize> = ballot.iter().map(|(candidate, _)| candidate.id).collect();
 
-    if candates.len() < 1 {
+    if candates.is_empty() {
         // empty ballot is valid
         return true;
     }
 
     // invalid if there are duplicates
     // sort the list, duplicates will be sequential
-    candates.sort();
+    candates.sort_unstable();
     for window in candates.windows(2) {
         if window[0] == window[1] {
             return false;
         }
     }
-    return true;
+
+    true
 }
 
-fn highest_id(votes: &Vec<Ballot>) -> usize {
+fn highest_id(votes: &[Ballot]) -> usize {
     let mut num_candidates = 0;
     for ballot in votes {
         for (candidate, _) in ballot {
@@ -40,7 +42,7 @@ fn highest_id(votes: &Vec<Ballot>) -> usize {
         }
     }
 
-    return num_candidates;
+    num_candidates
 }
 
 /// Pairwise Preferences in an election. For some number of candidates, stores the preference of
@@ -69,7 +71,7 @@ impl PairwisePreferences {
         (0..self.num_candidates()).map(|candidate_id| candidate_id.into())
     }
 
-    fn from_ballots(ballots: &Vec<Ballot>) -> Self {
+    fn from_ballots(ballots: &[Ballot]) -> Self {
         let highest_id = highest_id(ballots);
         let mut count = PairwisePreferences::new(highest_id + 1);
 
@@ -77,11 +79,11 @@ impl PairwisePreferences {
             count.count_ballot(ballot);
         }
 
-        return count;
+        count
     }
 
     // Adds a new ballot to the total count.
-    fn count_ballot(&mut self, ballot: &Ballot) {
+    fn count_ballot(&mut self, ballot: &BallotSlice) {
         for i in 0..ballot.len() {
             for j in (i+1)..ballot.len() {
                 let (candidate_a, rank_a) = ballot[i];
