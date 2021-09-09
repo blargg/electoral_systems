@@ -46,6 +46,7 @@ fn floyd_warshall_widest_paths(weights: &[Vec<i32>]) -> Vec<Vec<i32>> {
     assert!(dim == weights[0].len(), "only valid for square matrices");
     // Initialize widest path to all 0 and 1 step widest paths.
     let mut current_widest = weights.to_owned();
+    #[allow(clippy::needless_range_loop)]
     for i in 0..dim {
         // self loop assumed to have maximum width.
         current_widest[i][i] = i32::MAX;
