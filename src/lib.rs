@@ -103,9 +103,11 @@ impl PairwisePreferences {
     }
 }
 
-impl Into<Candidate> for usize {
-    fn into(self) -> Candidate {
-        Candidate { id: self }
+impl From<usize> for Candidate {
+    fn from(id: usize) -> Self {
+        Candidate {
+            id,
+        }
     }
 }
 
