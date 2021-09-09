@@ -126,7 +126,7 @@ mod test {
         length.prop_flat_map(|num_vertecies| {
             (1..num_vertecies).prop_flat_map(move |path_length| {
                 square_vec(Just(num_vertecies)).prop_flat_map(move |weights| {
-                    shuffled_subsequence(0..num_vertecies, path_length).prop_map(move |path| ((weights.clone(), path)))
+                    shuffled_subsequence(0..num_vertecies, path_length).prop_map(move |path| (weights.clone(), path))
                 })
             })
         })
