@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 pub mod instant_runoff_voting;
 pub mod schulze_method;
 
@@ -67,6 +69,19 @@ impl PairwisePreferences {
         self.counts.len()
     }
 
+    fn candidates_not_on_this_ballot(&self, ballot: &BallotSlice) -> HashSet<Candidate> {
+        let mut candidates = HashSet::new();
+        for i in 0..self.num_candidates() {
+            candidates.insert(Candidate { id: i });
+        }
+
+        for (candidate, _) in ballot {
+            candidates.remove(candidate);
+        }
+
+        return candidates;
+    }
+
     fn candidates(&self) -> impl Iterator<Item = Candidate> {
         (0..self.num_candidates()).map(|candidate_id| candidate_id.into())
     }
@@ -85,8 +100,8 @@ impl PairwisePreferences {
     // Adds a new ballot to the total count.
     fn count_ballot(&mut self, ballot: &BallotSlice) {
         for i in 0..ballot.len() {
+            let (candidate_a, rank_a) = ballot[i];
             for j in (i + 1)..ballot.len() {
-                let (candidate_a, rank_a) = ballot[i];
                 let (candidate_b, rank_b) = ballot[j];
 
                 use std::cmp::Ordering;
@@ -98,6 +113,10 @@ impl PairwisePreferences {
                     // otherwise rank_a == rank_b, do not change the count
                     Ordering::Equal => {}
                 }
+            }
+
+            for missing_candidate in self.candidates_not_on_this_ballot(ballot) {
+                self.counts[candidate_a.id][missing_candidate.id] += 1;
             }
         }
     }
